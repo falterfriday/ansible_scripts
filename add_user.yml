@@ -1,0 +1,52 @@
+---
+
+- hosts: {{ env }}
+  tasks:
+  - name: add group
+    become: true
+    shell: groupadd {{ username }}
+    ignore_errors: yes
+
+  - name: add user
+    shell: useradd -m -g {{ username }} -G {{ username }} {{ username }}
+    ignore_errors: yes
+
+  - name: create ssh dir
+    become: true
+    shell: mkdir -p /home/{{ username }}/.ssh
+
+  - name: create auth_key file
+    become: true
+    shell: touch /home/{{ username }}/.ssh/authorized_keys
+
+  - name: write key to file
+    become: true
+    shell: echo "{{ user_key }}" > /home/{{ username }}/.ssh/authorized_keys
+
+  - name: update auth_keys permissions
+    become: true
+    file:
+      path: /home/{{ username }}/.ssh/authorized_keys
+      owner: {{ username }}
+      group: {{ username }}
+      mode: '0600'
+
+  - name: update ssh dir permissions
+    become: true
+    file:
+      path: /home/{{ username }}/.ssh
+      owner: {{ username }}
+      group: {{ username }}
+      mode: '0700'
+
+  - name: update passwd exp
+    become: true
+    shell: chage -M -1 {{ username }}
+
+  - name: add to sys_admins
+    become: true
+    shell: usermod -aG sys_admins {{ username }}
+
+  - name: add to sshusers
+    become: true
+    shell: usermod -aG sshusers {{ username }}
