@@ -8,8 +8,12 @@
     ignore_errors: yes
 
   - name: add user
-    shell: useradd -m -g {{ username }} -G {{ username }} {{ username }}
-    ignore_errors: yes
+    user:
+      name: {{ username }}
+      groups: sys_admins,sshusers
+      append: yes
+      create_home: yes
+      state: present
 
   - name: create ssh dir
     become: true
